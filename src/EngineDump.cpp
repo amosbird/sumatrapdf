@@ -304,7 +304,6 @@ void DumpThumbnail(BaseEngine *engine)
 
 void DumpData(BaseEngine *engine, bool fullDump)
 {
-    Out(UTF8_BOM);
     Out("<?xml version=\"1.0\"?>\n");
     Out("<EngineDump>\n");
     DumpProperties(engine, fullDump);

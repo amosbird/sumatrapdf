@@ -3436,6 +3436,8 @@ static void FrameOnChar(WindowInfo& win, WPARAM key, LPARAM info=0)
     if (!win.IsDocLoaded())
         return;
 
+    DisplayModel *dm = win.AsFixed();
+    bool isShift = IsShiftPressed();
     switch (key) {
     case VK_SPACE:
     case VK_RETURN:
@@ -3447,8 +3449,21 @@ static void FrameOnChar(WindowInfo& win, WPARAM key, LPARAM info=0)
             win.ctrl->Navigate(forward ? 1 : -1);
         }
         break;
+
+	case 'u':
+        if (dm && dm->NeedVScroll())
+            SendMessage(win.hwndCanvas, WM_VSCROLL, SB_HPAGEUP, 0);
+        else
+            win.ctrl->GoToPrevPage(true);
+		break;
+	case 'd':
+        if (dm && dm->NeedVScroll())
+            SendMessage(win.hwndCanvas, WM_VSCROLL, SB_HPAGEDOWN, 0);
+        else
+            win.ctrl->GoToNextPage();
+		break;
     case 'g':
-        OnMenuGoToPage(win);
+        FrameOnKeydown(&win, isShift ? VK_END : VK_HOME, 0);
         break;
     case 'j':
         FrameOnKeydown(&win, VK_DOWN, 0);
@@ -3457,7 +3472,10 @@ static void FrameOnChar(WindowInfo& win, WPARAM key, LPARAM info=0)
         FrameOnKeydown(&win, VK_UP, 0);
         break;
     case 'n':
-        win.ctrl->GoToNextPage();
+		if (isShift)
+			OnMenuFindPrev(&win);
+		else
+			OnMenuFindNext(&win);
         break;
     case 'p':
         win.ctrl->GoToPrevPage();

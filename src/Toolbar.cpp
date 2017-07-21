@@ -288,7 +288,8 @@ static LRESULT CALLBACK WndProcFindBox(HWND hwnd, UINT message, WPARAM wParam, L
             return 1;
 
         case VK_RETURN:
-            FindTextOnThread(win, IsShiftPressed() ? FIND_BACKWARD : FIND_FORWARD, true);
+            // FindTextOnThread(win, IsShiftPressed() ? FIND_BACKWARD : FIND_FORWARD, true);
+			SetFocus(win->hwndFrame);
             return 1;
 
         case VK_TAB:
