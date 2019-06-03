@@ -3442,6 +3442,8 @@ static void FrameOnChar(WindowInfo* win, WPARAM key, LPARAM info = 0) {
         return;
 
     auto* ctrl = win->ctrl;
+    DisplayModel* dm = win->AsFixed();
+    bool isShift = IsShiftPressed();
 
     switch (key) {
         case VK_SPACE:
@@ -3452,8 +3454,20 @@ static void FrameOnChar(WindowInfo* win, WPARAM key, LPARAM info = 0) {
             bool forward = IsShiftPressed();
             ctrl->Navigate(forward ? 1 : -1);
         } break;
+        case 'u':
+            if (dm && dm->NeedVScroll())
+                SendMessage(win->hwndCanvas, WM_VSCROLL, SB_HPAGEUP, 0);
+            else
+                ctrl->GoToPrevPage(true);
+            break;
+        case 'd':
+            if (dm && dm->NeedVScroll())
+                SendMessage(win->hwndCanvas, WM_VSCROLL, SB_HPAGEDOWN, 0);
+            else
+                ctrl->GoToNextPage();
+            break;
         case 'g':
-            OnMenuGoToPage(win);
+            FrameOnKeydown(win, isShift ? VK_END : VK_HOME, 0);
             break;
         case 'h':
             FrameOnKeydown(win, VK_LEFT, 0);
@@ -3497,32 +3511,6 @@ static void FrameOnChar(WindowInfo* win, WPARAM key, LPARAM info = 0) {
             break;
         case 'c':
             OnMenuViewContinuous(win);
-            break;
-        case 'b':
-            if (win->AsFixed() && !IsSingle(ctrl->GetDisplayMode())) {
-                // "e-book view": flip a single page
-                bool forward = !IsShiftPressed();
-                int currPage = ctrl->CurrentPageNo();
-                if (forward ? win->AsFixed()->LastBookPageVisible() : win->AsFixed()->FirstBookPageVisible())
-                    break;
-
-                DisplayMode newMode = DM_BOOK_VIEW;
-                if (IsBookView(ctrl->GetDisplayMode()))
-                    newMode = DM_FACING;
-                SwitchToDisplayMode(win, newMode, true);
-
-                if (forward && currPage >= ctrl->CurrentPageNo() && (currPage > 1 || newMode == DM_BOOK_VIEW))
-                    ctrl->GoToNextPage();
-                else if (!forward && currPage <= ctrl->CurrentPageNo())
-                    win->ctrl->GoToPrevPage();
-            } else if (win->AsEbook() && !IsSingle(ctrl->GetDisplayMode())) {
-                // "e-book view": flip a single page
-                bool forward = !IsShiftPressed();
-                int nextPage = ctrl->CurrentPageNo() + (forward ? 1 : -1);
-                if (ctrl->ValidPageNo(nextPage))
-                    ctrl->GoToPage(nextPage, false);
-            } else if (win->presentation)
-                win->ChangePresentationMode(PM_BLACK_SCREEN);
             break;
         case '.':
             // for Logitech's wireless presenters which target PowerPoint's shortcuts
@@ -4129,7 +4117,7 @@ static LRESULT FrameOnCommand(WindowInfo* win, HWND hwnd, UINT msg, WPARAM wPara
 }
 
 static LRESULT OnFrameGetMinMaxInfo(MINMAXINFO* info) {
-	//limit windows min width to prevent render loop when siderbar is too big 
+	//limit windows min width to prevent render loop when siderbar is too big
     info->ptMinTrackSize.x = MIN_WIN_DX - SIDEBAR_MIN_WIDTH + gGlobalPrefs->sidebarDx;
     info->ptMinTrackSize.y = MIN_WIN_DY;
     return 0;

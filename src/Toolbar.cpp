@@ -273,7 +273,8 @@ static LRESULT CALLBACK WndProcFindBox(HWND hwnd, UINT message, WPARAM wParam, L
 
             case VK_RETURN: {
                 auto searchDir = IsShiftPressed() ? TextSearchDirection::Backward : TextSearchDirection::Forward;
-                FindTextOnThread(win, searchDir, true);
+                // FindTextOnThread(win, searchDir, true);
+                SetFocus(win->hwndFrame);
                 return 1;
             }
 
